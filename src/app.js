@@ -8,6 +8,7 @@ import { db } from "./db.js";
 import { createSchema, updateSchema, pagination, applicationSchema } from "./validation.js";
 
 export const app = express();
+app.set('trust proxy', 1);
 const here = path.dirname(fileURLToPath(import.meta.url));
 
 app.disable("x-powered-by");
