@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Find internships by role, company, location, and domain.">
+  <title>Launchpad — Internship Board</title>
+  <style>
+    :root {
+      --ink: #17221e; --muted: #63716b; --paper: #f7f8f4; --card: #fff;
+      --line: #dfe5df; --green: #1d5c46; --green-dark: #174936;
+      --lime: #d8f36a; --soft: #edf3e8; --danger: #9e3030;
+      --shadow: 0 10px 30px rgba(24, 48, 36, .06);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); line-height: 1.5; }
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+    button, a, input, select { outline-offset: 3px; }
+    :focus-visible { outline: 3px solid #8aa92c; }
+    .skip-link { position: absolute; left: 1rem; top: -5rem; z-index: 10; padding: .75rem 1rem; background: white; border-radius: .5rem; }
+    .skip-link:focus { top: 1rem; }
+    .wrap { width: min(1120px, calc(100% - 40px)); margin-inline: auto; }
+    .topbar { border-bottom: 1px solid var(--line); background: rgba(255,255,255,.82); }
+    .nav { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .brand { display: inline-flex; align-items: center; gap: .65rem; text-decoration: none; font-weight: 850; letter-spacing: -.04em; font-size: 1.25rem; }
+    .brand-mark { display: grid; place-items: center; width: 36px; height: 36px; background: var(--green); color: var(--lime); border-radius: 11px; font-size: 1.05rem; }
+    .nav-note { color: var(--muted); font-size: .9rem; }
+    .hero { padding: clamp(2.5rem, 7vw, 5.25rem) 0 2.5rem; }
+    .eyebrow { display: inline-flex; align-items: center; gap: .5rem; color: var(--green); background: var(--soft); border-radius: 99px; padding: .35rem .7rem; font-weight: 750; font-size: .78rem; letter-spacing: .04em; text-transform: uppercase; }
+    .eyebrow-dot { width: 7px; height: 7px; background: #78a12a; border-radius: 50%; }
+    h1 { max-width: 760px; margin: 1rem 0 .85rem; font-size: clamp(2.5rem, 6vw, 4.65rem); line-height: 1.02; letter-spacing: -.065em; font-weight: 820; }
+    h1 span { color: var(--green); }
+    .hero-copy { max-width: 610px; margin: 0; color: var(--muted); font-size: clamp(1rem, 2vw, 1.12rem); }
+    .search-panel { margin-top: 2rem; padding: 1rem; background: white; border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); }
+    .filters { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(180px, .8fr) auto; gap: .8rem; align-items: end; }
+    .field { min-width: 0; }
+    label { display: block; margin: 0 0 .4rem; font-weight: 750; font-size: .82rem; }
+    input, select { width: 100%; min-height: 48px; border: 1px solid #cbd5cd; background: #fff; color: var(--ink); border-radius: 10px; padding: .7rem .85rem; }
+    input::placeholder { color: #78847d; }
+    .search-btn { min-height: 48px; border: 0; border-radius: 10px; padding: .7rem 1.2rem; background: var(--green); color: white; font-weight: 750; cursor: pointer; }
+    .search-btn:hover { background: var(--green-dark); }
+    .reset-btn { min-height: 48px; border: 1px solid var(--line); border-radius: 10px; padding: .7rem 1rem; background: white; font-weight: 700; cursor: pointer; }
+    .filter-actions { display: flex; gap: .5rem; }
+    main { padding: 1rem 0 4.5rem; }
+    .results-head { display: flex; justify-content: space-between; align-items: end; gap: 1rem; margin: 1.5rem 0 1rem; }
+    h2 { margin: 0; font-size: clamp(1.45rem, 3vw, 1.9rem); letter-spacing: -.04em; }
+    .results-count { color: var(--muted); font-size: .9rem; }
+    .board-layout { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 1.25rem; align-items: start; }
+    .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .card { display: flex; flex-direction: column; min-width: 0; min-height: 270px; padding: 1.2rem; background: var(--card); border: 1px solid var(--line); border-radius: 16px; transition: transform .15s ease, box-shadow .15s ease; }
+    .card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .card-top { display: flex; justify-content: space-between; align-items: start; gap: .75rem; }
+    .company-icon { display: grid; place-items: center; flex: 0 0 44px; width: 44px; height: 44px; border-radius: 13px; background: var(--soft); color: var(--green); font-weight: 850; }
+    .type-pill { padding: .3rem .55rem; border-radius: 99px; background: #f1f3ef; color: #48554d; font-size: .72rem; font-weight: 750; white-space: nowrap; }
+    .card h3 { margin: 1rem 0 .25rem; font-size: 1.13rem; line-height: 1.3; letter-spacing: -.025em; }
+    .company { color: var(--muted); font-size: .9rem; }
+    .details { display: flex; flex-wrap: wrap; gap: .45rem .8rem; margin: 1rem 0; color: #4f5e55; font-size: .8rem; }
+    .details span { display: inline-flex; align-items: center; gap: .3rem; }
+    .tags { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: auto; padding-top: .25rem; }
+    .tag { padding: .3rem .55rem; border: 1px solid var(--line); border-radius: 7px; color: #4c5b51; font-size: .73rem; }
+    .card-bottom { display: flex; justify-content: space-between; align-items: center; gap: .7rem; margin-top: 1rem; padding-top: .85rem; border-top: 1px solid #edf0ec; }
+    .stipend { font-weight: 800; font-size: .88rem; }
+    .apply-link { color: var(--green); font-size: .85rem; font-weight: 800; text-decoration: none; }
+    .apply-link:hover { text-decoration: underline; }
+    .side-card { padding: 1.15rem; background: #eaf0e4; border-radius: 16px; }
+    .side-card h3 { margin: 0 0 .5rem; font-size: 1rem; }
+    .side-card p { margin: 0; color: #536258; font-size: .88rem; }
+    .side-card ul { padding-left: 1.1rem; margin: .85rem 0 0; color: #46574b; font-size: .85rem; }
+    .side-card li + li { margin-top: .45rem; }
+    .empty-state, .error-state { grid-column: 1 / -1; padding: 3rem 1.5rem; text-align: center; background: white; border: 1px dashed #cbd5cd; border-radius: 16px; }
+    .state-icon { display: grid; place-items: center; margin: 0 auto .8rem; width: 48px; height: 48px; border-radius: 50%; background: var(--soft); color: var(--green); font-size: 1.35rem; font-weight: 800; }
+    .empty-state h3, .error-state h3 { margin: 0 0 .4rem; }
+    .empty-state p, .error-state p { max-width: 430px; margin: 0 auto 1rem; color: var(--muted); }
+    .error-state { border-color: #e6b8b8; }
+    .error-state .state-icon { background: #fff0f0; color: var(--danger); }
+    .error-state[hidden], .empty-state[hidden] { display: none; }
+    .status { min-height: 1.5rem; margin-top: .65rem; color: var(--muted); font-size: .85rem; }
+    footer { border-top: 1px solid var(--line); padding: 1.25rem 0; color: var(--muted); font-size: .82rem; }
+    .footer-inner { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    @media (max-width: 850px) {
+      .board-layout { grid-template-columns: 1fr; }
+      .side-card { display: grid; grid-template-columns: 1fr 1.2fr; gap: .8rem 1.2rem; align-items: start; }
+      .side-card ul { margin: 0; }
+    }
+    @media (max-width: 620px) {
+      .wrap { width: min(100% - 28px, 1120px); }
+      .nav { min-height: 64px; }
+      .nav-note { display: none; }
+      .hero { padding-top: 2.4rem; }
+      .filters { grid-template-columns: 1fr; }
+      .filter-actions { display: grid; grid-template-columns: 1fr 1fr; }
+      .cards { grid-template-columns: 1fr; }
+      .card { min-height: 0; }
+      .results-head { align-items: start; flex-direction: column; gap: .25rem; }
+      .side-card { display: block; }
+      .side-card ul { margin-top: .75rem; }
+    }
+
+    .application-section { padding-bottom: 4rem; }
+    .application-card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: clamp(1.25rem, 4vw, 2rem); box-shadow: var(--shadow); }
+    .application-card h2 { margin: .8rem 0 .4rem; }
+    .application-intro { color: var(--muted); margin: 0 0 1.4rem; }
+    .application-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .full-field { grid-column: 1 / -1; }
+    .application-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; }
+    .loading-state { grid-column: 1 / -1; padding: 2rem; text-align: center; background: white; border: 1px solid var(--line); border-radius: 16px; color: var(--muted); }
+    .error-state .retry-btn { border: 0; border-radius: 10px; padding: .7rem 1rem; background: var(--green); color: #fff; font-weight: 750; cursor: pointer; }
+    .status.success { color: var(--green); }
+    .status.failure { color: var(--danger); }
+    .apply-link[aria-disabled="true"] { opacity: .5; pointer-events: none; }
+    @media (max-width: 620px) { .application-fields { grid-template-columns: 1fr; } .full-field { grid-column: auto; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to internship listings</a>
+  <header class="topbar">
+    <div class="wrap nav">
+      <a class="brand" href="#" aria-label="Launchpad home">
+        <span class="brand-mark" aria-hidden="true">↗</span><span>launchpad<span style="color:#68806f">.</span></span>
+      </a>
+      <span class="nav-note">A thoughtful start to your next chapter</span>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> Your next opportunity</span>
+      <h1>Find work that <span>moves you forward.</span></h1>
+      <p class="hero-copy">Explore internships built for curious minds. Search roles, discover new domains, and take the next step in your career.</p>
+
+      <form class="search-panel" id="search-form" role="search" novalidate>
+        <div class="filters">
+          <div class="field">
+            <label for="keyword">Search internships</label>
+            <input id="keyword" name="keyword" type="search" placeholder="Role, company, skill, or location" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="domain">Choose a domain</label>
+            <select id="domain" name="domain">
+              <option value="all">All domains</option>
+              <option value="Full Stack Development">Full Stack Development</option>
+              <option value="UI/UX">UI/UX</option>
+              <option value="Data Analytics">Data Analytics</option>
+              <option value="Cyber Security">Cyber Security</option>
+            </select>
+          </div>
+          <div class="filter-actions">
+            <button class="search-btn" type="submit">Search roles</button>
+            <button class="reset-btn" id="reset-btn" type="button">Reset</button>
+          </div>
+        </div>
+        <p class="status" id="form-status" aria-live="polite">Tip: try “Python”, “remote”, or “design”.</p>
+      </form>
+    </div>
+  </section>
+
+  <main id="main-content" class="wrap">
+    <div class="results-head">
+      <div>
+        <h2>Open opportunities</h2>
+        <p class="results-count" id="results-count">Showing internships</p>
+      </div>
+    </div>
+    <div class="board-layout">
+      <section class="cards" id="internship-list" aria-label="Internship listings" aria-live="polite" aria-busy="false"></section>
+      <aside class="side-card" aria-labelledby="tips-title">
+        <div>
+          <h3 id="tips-title">Make your next move</h3>
+          <p>A few small steps can make your application stand out.</p>
+        </div>
+        <ul>
+          <li>Tailor your resume to each role.</li>
+          <li>Show projects, not just skills.</li>
+          <li>Check the role details before applying.</li>
+        </ul>
+      </aside>
+    </div>
+  </main>
+
+
+  <section class="wrap application-section" id="application-section" aria-labelledby="application-title">
+    <div class="application-card">
+      <div>
+        <span class="eyebrow">Take the next step</span>
+        <h2 id="application-title">Apply for an internship</h2>
+        <p class="application-intro">Submit your details for one of the listed opportunities. Fields marked required must be completed.</p>
+      </div>
+      <form id="application-form" novalidate>
+        <div class="application-fields">
+          <div class="field">
+            <label for="applicant-name">Full name <span aria-hidden="true">*</span></label>
+            <input id="applicant-name" name="name" autocomplete="name" required minlength="2" maxlength="100">
+          </div>
+          <div class="field">
+            <label for="applicant-email">Email address <span aria-hidden="true">*</span></label>
+            <input id="applicant-email" name="email" type="email" autocomplete="email" required maxlength="254">
+          </div>
+          <div class="field full-field">
+            <label for="application-internship">Internship <span aria-hidden="true">*</span></label>
+            <select id="application-internship" name="internshipId" required>
+              <option value="">Choose an internship</option>
+            </select>
+          </div>
+          <div class="field full-field">
+            <label for="resume-url">Resume or portfolio URL (optional)</label>
+            <input id="resume-url" name="resumeUrl" type="url" inputmode="url" placeholder="https://example.com/portfolio" maxlength="500">
+          </div>
+        </div>
+        <div class="application-actions">
+          <button class="search-btn" type="submit" id="application-submit">Submit application</button>
+          <span class="status" id="application-status" role="status" aria-live="polite"></span>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap footer-inner">
+      <span>© 2026 Launchpad Internship Board</span>
+      <span>Built for every screen. Designed for everyone.</span>
+    </div>
+  </footer>
+
+  <script>
+    // API base is same-origin when the Express server serves this page.
+    const API_BASE = "";
+    const form = document.querySelector("#search-form");
+    const keywordInput = document.querySelector("#keyword");
+    const domainSelect = document.querySelector("#domain");
+    const list = document.querySelector("#internship-list");
+    const count = document.querySelector("#results-count");
+    const status = document.querySelector("#form-status");
+    const resetButton = document.querySelector("#reset-btn");
+    const applicationForm = document.querySelector("#application-form");
+    const applicationSelect = document.querySelector("#application-internship");
+    const applicationStatus = document.querySelector("#application-status");
+    const applicationSubmit = document.querySelector("#application-submit");
+    let internships = [];
+    let isLoading = false;
+
+    function showLoading() {
+      list.replaceChildren();
+      const loading = document.createElement("div");
+      loading.className = "loading-state";
+      loading.textContent = "Loading internships…";
+      list.append(loading);
+      list.setAttribute("aria-busy", "true");
+      count.textContent = "Loading listings…";
+    }
+
+    function showState(kind, heading, message) {
+      const state = document.createElement("div");
+      state.className = kind === "error" ? "error-state" : "empty-state";
+      const icon = document.createElement("div");
+      icon.className = "state-icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.textContent = kind === "error" ? "!" : "⌕";
+      const title = document.createElement("h3");
+      title.textContent = heading;
+      const copy = document.createElement("p");
+      copy.textContent = message;
+      state.append(icon, title, copy);
+      if (kind === "empty") {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "reset-btn";
+        button.textContent = "Clear filters";
+        button.addEventListener("click", resetFilters);
+        state.append(button);
+      }
+      if (kind === "error") {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "retry-btn";
+        button.textContent = "Try again";
+        button.addEventListener("click", loadInternships);
+        state.append(button);
+      }
+      list.append(state);
+    }
+
+    function makeCard(job) {
+      const article = document.createElement("article");
+      article.className = "card";
+      const top = document.createElement("div");
+      top.className = "card-top";
+      const logo = document.createElement("div");
+      logo.className = "company-icon";
+      logo.setAttribute("aria-hidden", "true");
+      logo.textContent = job.title.split(/\s+/).slice(0, 2).map(word => word[0]).join("").toUpperCase();
+      const type = document.createElement("span");
+      type.className = "type-pill";
+      type.textContent = job.mode;
+      top.append(logo, type);
+
+      const title = document.createElement("h3");
+      title.textContent = job.title;
+      const company = document.createElement("div");
+      company.className = "company";
+      company.textContent = `Internship ID: ${job.id}`;
+
+      const details = document.createElement("div");
+      details.className = "details";
+      [`ID: ${job.id}`, job.location, job.domain, `${job.openings} opening${job.openings === 1 ? "" : "s"}`].forEach(value => {
+        const item = document.createElement("span");
+        item.textContent = value;
+        details.append(item);
+      });
+
+      const tags = document.createElement("div");
+      tags.className = "tags";
+      (job.skills || []).forEach(skill => {
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = skill;
+        tags.append(tag);
+      });
+
+      const bottom = document.createElement("div");
+      bottom.className = "card-bottom";
+      const openings = document.createElement("span");
+      openings.className = "stipend";
+      openings.textContent = `${job.openings} opening${job.openings === 1 ? "" : "s"}`;
+      const link = document.createElement("a");
+      link.className = "apply-link";
+      link.href = "#application-section";
+      link.textContent = "Apply";
+      link.setAttribute("aria-label", `Apply for ${job.title}, internship ID ${job.id}`);
+      link.addEventListener("click", () => {
+        applicationSelect.value = job.id;
+        window.setTimeout(() => document.querySelector("#applicant-name").focus(), 0);
+      });
+      bottom.append(openings, link);
+      article.append(top, title, company, details, tags, bottom);
+      return article;
+    }
+
+    function render(jobs) {
+      list.replaceChildren();
+      list.setAttribute("aria-busy", "false");
+      if (!Array.isArray(jobs)) {
+        count.textContent = "Listings could not be loaded";
+        showState("error", "Something went wrong", "We couldn't display the internships. Check that the API is running, then try again.");
+        status.textContent = "Error: internship data is unavailable.";
+        return;
+      }
+      if (jobs.length === 0) {
+        count.textContent = "No internships found";
+        showState("empty", "No matches just yet", "Try a different keyword or choose another domain to see more opportunities.");
+        status.textContent = "No results. Adjust your search or clear the filters.";
+        return;
+      }
+      jobs.forEach(job => list.append(makeCard(job)));
+      count.textContent = `Showing ${jobs.length} of ${internships.length} internships`;
+      status.textContent = "Results updated. Use Tab to move through the Apply buttons.";
+    }
+
+    function applyFilters(event) {
+      if (event) event.preventDefault();
+      const keyword = keywordInput.value.trim().toLocaleLowerCase();
+      const domain = domainSelect.value;
+      const filtered = internships.filter(job => {
+        const searchable = [job.id, job.title, job.domain, job.mode, job.location, String(job.openings), ...(job.skills || [])].join(" ").toLocaleLowerCase();
+        return (!keyword || searchable.includes(keyword)) && (domain === "all" || job.domain === domain);
+      });
+      render(filtered);
+    }
+
+    function resetFilters() {
+      keywordInput.value = "";
+      domainSelect.value = "all";
+      render(internships);
+      keywordInput.focus();
+    }
+
+    async function requestWithRetry(url, options = {}, attempts = 2) {
+      let lastError;
+      for (let attempt = 0; attempt < attempts; attempt++) {
+        try {
+          const response = await fetch(url, { ...options, headers: { Accept: "application/json", ...(options.headers || {}) } });
+          if (!response.ok) {
+            const payload = await response.json().catch(() => ({}));
+            const error = new Error(payload?.error?.message || `Request failed (${response.status})`);
+            error.status = response.status;
+            // Do not retry client errors such as validation failures or rate limiting.
+            if (response.status < 500) throw error;
+            throw error;
+          }
+          if (response.status === 204) return null;
+          return await response.json();
+        } catch (error) {
+          lastError = error;
+          if (error.status && error.status < 500) throw error;
+          if (attempt + 1 < attempts) await new Promise(resolve => setTimeout(resolve, 350 * (attempt + 1)));
+        }
+      }
+      throw lastError;
+    }
+
+    async function loadInternships() {
+      if (isLoading) return;
+      isLoading = true;
+      showLoading();
+      status.textContent = "Connecting to the internship service…";
+      try {
+        const payload = await requestWithRetry(`${API_BASE}/api/internships?page=1&limit=100`);
+        if (!payload || !Array.isArray(payload.data)) throw new Error("The API returned an unexpected response.");
+        internships = payload.data;
+        const domains = [...new Set(internships.map(job => job.domain))].sort();
+        const selected = domainSelect.value;
+        domainSelect.replaceChildren(new Option("All domains", "all"));
+        domains.forEach(domain => domainSelect.add(new Option(domain, domain)));
+        domainSelect.value = domains.includes(selected) ? selected : "all";
+        applicationSelect.replaceChildren(new Option("Choose an internship", ""));
+        internships.forEach(job => {
+          const option = new Option(`${job.title} (${job.id})`, job.id);
+          if (job.applications_open === false) option.disabled = true;
+          applicationSelect.add(option);
+        });
+        applyFilters();
+      } catch (error) {
+        list.replaceChildren();
+        list.setAttribute("aria-busy", "false");
+        count.textContent = "Listings unavailable";
+        showState("error", "We couldn't connect", error.message || "The API may be unavailable. Please try again.");
+        status.textContent = "Could not load internship data.";
+      } finally {
+        isLoading = false;
+      }
+    }
+
+    applicationForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      applicationStatus.className = "status";
+      applicationStatus.textContent = "";
+      if (!applicationForm.reportValidity()) return;
+      const data = new FormData(applicationForm);
+      const body = {
+        name: String(data.get("name") || "").trim(),
+        email: String(data.get("email") || "").trim(),
+        internshipId: String(data.get("internshipId") || ""),
+        resumeUrl: String(data.get("resumeUrl") || "").trim() || undefined
+      };
+      applicationSubmit.disabled = true;
+      applicationSubmit.textContent = "Submitting…";
+      applicationStatus.textContent = "Submitting your application…";
+      try {
+        const result = await requestWithRetry(`${API_BASE}/api/applications`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        }, 1);
+        applicationStatus.className = "status success";
+        applicationStatus.textContent = `Application received. Reference: ${result.data.id}`;
+        applicationForm.reset();
+      } catch (error) {
+        applicationStatus.className = "status failure";
+        applicationStatus.textContent = error.message || "Application could not be submitted. Please try again.";
+      } finally {
+        applicationSubmit.disabled = false;
+        applicationSubmit.textContent = "Submit application";
+      }
+    });
+
+    form.addEventListener("submit", applyFilters);
+    keywordInput.addEventListener("input", applyFilters);
+    domainSelect.addEventListener("change", applyFilters);
+    resetButton.addEventListener("click", resetFilters);
+    loadInternships();
+  </script>
+
+</body>
+</html>
