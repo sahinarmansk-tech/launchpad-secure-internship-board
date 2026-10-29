@@ -32,3 +32,46 @@ CREATE TABLE IF NOT EXISTS applications (
  resume_url TEXT,
  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );`);
+
+```js
+// Seed sample internships automatically when the database is empty.
+const internshipCount = db
+  .prepare("SELECT COUNT(*) AS count FROM internships")
+  .get().count;
+
+if (internshipCount === 0) {
+  const seedPath = path.resolve(here, "../data/seed.json");
+
+  if (fs.existsSync(seedPath)) {
+    const { internships } = JSON.parse(
+      fs.readFileSync(seedPath, "utf8")
+    );
+
+    const insertInternship = db.prepare(`
+      INSERT INTO internships (
+        id, title, domain, mode, location, skills,
+        openings, duration_weeks, applications_open
+      )
+      VALUES (
+        @id, @title, @domain, @mode, @location, @skills,
+        @openings, @duration_weeks, @applications_open
+      )
+    `);
+
+    const seedDatabase = db.transaction((items) => {
+      for (const internship of items) {
+        insertInternship.run({
+          ...internship,
+          skills: JSON.stringify(internship.skills || []),
+          duration_weeks: internship.duration_weeks ?? null,
+          applications_open:
+            internship.applications_open === false ? 0 : 1,
+        });
+      }
+    });
+
+    seedDatabase(internships);
+    console.log(`Seeded ${internships.length} internship records.`);
+  }
+}
+```
