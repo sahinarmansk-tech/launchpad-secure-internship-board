@@ -112,6 +112,26 @@ app.post("/api/applications", applicationLimiter, (req, res) => {
   res.status(201).json({ data: { id, internshipId, message: "Application received" } });
 });
 
+// Only administrators can view submitted applications.
+app.get("/api/admin/applications", requireAdmin, (req, res) => {
+  const applications = db.prepare(`
+    SELECT
+      a.id,
+      a.name,
+      a.email,
+      a.internship_id,
+      i.title AS internship_title,
+      a.resume_url
+    FROM applications AS a
+    LEFT JOIN internships AS i
+      ON a.internship_id = i.id
+    ORDER BY a.rowid DESC
+    LIMIT 100
+  `).all();
+
+  res.set("Cache-Control", "no-store");
+  res.json({ data: applications });
+});
 app.post("/api/internships", requireAdmin, (req, res) => {
   const parsed = createSchema.safeParse(req.body);
   if (!parsed.success) return validationFail(res, parsed.error);
