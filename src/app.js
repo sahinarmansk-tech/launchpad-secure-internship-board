@@ -3,9 +3,19 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { randomUUID, timingSafeEqual } from "node:crypto";
+import { randomUUID, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import { promisify } from "node:util";
 import { db } from "./db.js";
 import { createSchema, updateSchema, pagination, applicationSchema } from "./validation.js";
+
+const scryptAsync = promisify(scrypt);
+
+async function hashPassword(password) {
+  const salt = randomBytes(16).toString("hex");
+  const derivedKey = await scryptAsync(password, salt, 64);
+
+  return `${salt}:${derivedKey.toString("hex")}`;
+}
 
 export const app = express();
 app.set('trust proxy', 1);
@@ -73,6 +83,109 @@ function requireAdmin(req, res, next) {
 }
 
 app.get("/health", (_req, res) => res.json({ data: { status: "ok" } }));
+
+
+const internAuthLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: {
+      code: "AUTH_RATE_LIMITED",
+      message: "Too many account requests. Please try again later."
+    }
+  }
+});
+
+app.post("/api/intern/register", internAuthLimiter, async (req, res, next) => {
+  try {
+    const { name, email, password } = req.body || {};
+
+    if (
+      typeof name !== "string" ||
+      typeof email !== "string" ||
+      typeof password !== "string"
+    ) {
+      return fail(
+        res, 400, "VALIDATION_ERROR",
+        "Name, email and password are required."
+      );
+    }
+
+    const cleanName = name.trim();
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (cleanName.length < 2 || cleanName.length > 100) {
+      return fail(
+        res, 400, "VALIDATION_ERROR",
+        "Name must contain 2 to 100 characters."
+      );
+    }
+
+    if (
+      cleanEmail.length > 254 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)
+    ) {
+      return fail(
+        res, 400, "VALIDATION_ERROR",
+        "Enter a valid email address."
+      );
+    }
+
+    if (
+      password.length < 12 ||
+      Buffer.byteLength(password, "utf8") > 1024
+    ) {
+      return fail(
+        res, 400, "VALIDATION_ERROR",
+        "Password must be at least 12 characters and no more than 1024 bytes."
+      );
+    }
+
+    const existing = db.prepare(
+      "SELECT id FROM interns WHERE email = ?"
+    ).get(cleanEmail);
+
+    if (existing) {
+      return fail(
+        res, 409, "ACCOUNT_EXISTS",
+        "An account with this email already exists."
+      );
+    }
+
+    const id = randomUUID();
+    const passwordHash = await hashPassword(password);
+
+    try {
+      db.prepare(`
+        INSERT INTO interns (id, name, email, password_hash)
+        VALUES (?, ?, ?, ?)
+      `).run(id, cleanName, cleanEmail, passwordHash);
+    } catch (error) {
+      if (error.code?.startsWith("SQLITE_CONSTRAINT")) {
+        return fail(
+          res, 409, "ACCOUNT_EXISTS",
+          "An account with this email already exists."
+        );
+      }
+      throw error;
+    }
+
+    res.set("Cache-Control", "no-store");
+
+    return res.status(201).json({
+      data: {
+        id,
+        name: cleanName,
+        email: cleanEmail,
+        message: "Intern account created successfully."
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 app.get("/api/internships", (req, res) => {
   const pg = pagination(req.query);
