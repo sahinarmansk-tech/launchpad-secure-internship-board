@@ -33,6 +33,45 @@ CREATE TABLE IF NOT EXISTS applications (
  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );`);
 
+/*
+ * Intern accounts
+ * Passwords will be stored as secure hashes, never plain text.
+ */
+db.exec(`
+CREATE TABLE IF NOT EXISTS interns (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL COLLATE NOCASE UNIQUE,
+  password_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+`);
+
+/*
+ * Link applications to intern accounts.
+ * Existing applications remain unchanged.
+ */
+const applicationColumns = db
+  .prepare("PRAGMA table_info(applications)")
+  .all();
+
+const hasInternId = applicationColumns.some(
+  column => column.name === "intern_id"
+);
+
+if (!hasInternId) {
+  db.exec(`
+    ALTER TABLE applications
+    ADD COLUMN intern_id TEXT REFERENCES interns(id)
+    ON DELETE SET NULL;
+  `);
+}
+
+db.exec(`
+CREATE INDEX IF NOT EXISTS idx_applications_intern_id
+ON applications(intern_id);
+`);
+
 // Seed sample internships automatically when the database is empty.
 const internshipCount = db
   .prepare("SELECT COUNT(*) AS count FROM internships")
