@@ -73,4 +73,3 @@ if (internshipCount === 0) {
     console.log(`Seeded ${internships.length} internship records.`);
   }
 }
-```
