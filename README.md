@@ -52,3 +52,11 @@ Deploy the whole repository to a Node.js-capable host (not static-only hosting),
 
 ## Security checklist
 See [`SECURITY-CHECKLIST.md`](SECURITY-CHECKLIST.md). Test results and any environment-specific checks are recorded in [`TEST-REPORT.md`](TEST-REPORT.md).
+
+## Live Demo
+
+🚀 [LaunchPad Internship Board](https://launchpad.de.deplexo.com/)
+
+A full-stack internship board built with Node.js,
+Express, and SQLite. Users can browse internships,
+search and filter opportunities, and submit applications.
