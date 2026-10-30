@@ -33,7 +33,6 @@ CREATE TABLE IF NOT EXISTS applications (
  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );`);
 
-```js
 // Seed sample internships automatically when the database is empty.
 const internshipCount = db
   .prepare("SELECT COUNT(*) AS count FROM internships")
