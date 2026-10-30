@@ -1,0 +1,142 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LaunchPad Admin Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f7fb; margin: 0; padding: 24px; }
+    main { max-width: 1100px; margin: auto; }
+    h1 { color: #172554; }
+    .panel { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+    input, button { padding: 12px; margin: 5px 0; }
+    input { width: min(100%, 360px); box-sizing: border-box; }
+    button { background: #1d4ed8; color: white; border: 0; border-radius: 6px; cursor: pointer; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
+    th { background: #eff6ff; }
+    #message { margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>LaunchPad Admin Dashboard</h1>
+    <section class="panel">
+      <h2>Administrator Access</h2>
+      <p>Enter your admin API key to view applications.</p>
+      <input id="adminKey" type="password" placeholder="Admin API key" autocomplete="off">
+      <button id="loadButton">View Applications</button>
+      <button id="clearButton" type="button">Clear</button>
+      <p id="message" role="status"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Submitted Applications</h2>
+      <p id="count">No applications loaded.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Internship</th>
+              <th>Resume</th>
+            </tr>
+          </thead>
+          <tbody id="applications"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const keyInput = document.getElementById("adminKey");
+    const message = document.getElementById("message");
+    const count = document.getElementById("count");
+    const tbody = document.getElementById("applications");
+
+    document.getElementById("loadButton").addEventListener("click", async () => {
+      const key = keyInput.value.trim();
+      tbody.replaceChildren();
+      count.textContent = "No applications loaded.";
+
+      if (!key) {
+        message.textContent = "Please enter your admin key.";
+        return;
+      }
+
+      message.textContent = "Loading applications...";
+
+      try {
+        const response = await fetch("/api/admin/applications", {
+          headers: { Authorization: "Bearer " + key },
+          cache: "no-store"
+        });
+
+        if (!response.ok) {
+          message.textContent = response.status === 401
+            ? "Invalid admin key."
+            : "Unable to load applications (HTTP " + response.status + ").";
+          return;
+        }
+
+        const result = await response.json();
+        const applications = result.data || [];
+
+        for (const item of applications) {
+          const row = document.createElement("tr");
+
+          for (const value of [
+            item.id,
+            item.name,
+            item.email,
+            item.internship_title || item.internship_id
+          ]) {
+            const cell = document.createElement("td");
+            cell.textContent = value || "—";
+            row.appendChild(cell);
+          }
+
+          const resumeCell = document.createElement("td");
+          if (item.resume_url) {
+            const link = document.createElement("a");
+            try {
+              const url = new URL(item.resume_url);
+              if (url.protocol === "https:" || url.protocol === "http:") {
+                link.href = url.href;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                link.textContent = "View resume";
+                resumeCell.appendChild(link);
+              } else {
+                resumeCell.textContent = "Unavailable";
+              }
+            } catch {
+              resumeCell.textContent = "Unavailable";
+            }
+          } else {
+            resumeCell.textContent = "—";
+          }
+          row.appendChild(resumeCell);
+          tbody.appendChild(row);
+        }
+
+        count.textContent = applications.length + " application(s) loaded.";
+        message.textContent = "Applications loaded successfully.";
+      } catch {
+        message.textContent = "Network error. Please try again.";
+      }
+    });
+
+    document.getElementById("clearButton").addEventListener("click", () => {
+      keyInput.value = "";
+      tbody.replaceChildren();
+      count.textContent = "No applications loaded.";
+      message.textContent = "Cleared.";
+    });
+  </script>
+</body>
+</html>
