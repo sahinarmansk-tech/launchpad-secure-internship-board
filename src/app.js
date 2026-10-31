@@ -302,7 +302,8 @@ app.post("/api/intern/login", requireSameOrigin, internAuthLimiter, async (req, 
       typeof email !== "string" ||
       typeof password !== "string" ||
       !email.trim() ||
-      password.length > 1024
+      email.trim().length > 254 ||
+      Buffer.byteLength(password, "utf8") > 1024
     ) {
       return fail(res, 400, "VALIDATION_ERROR",
         "Valid email and password are required.");
