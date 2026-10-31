@@ -109,6 +109,40 @@ app.use(helmet({
 }));
 app.use(express.json({ limit: "20kb", strict: true }));
 
+function requireSameOrigin(req, res, next) {
+  const origin = req.get("origin");
+
+  if (!origin) {
+    return fail(
+      res,
+      403,
+      "ORIGIN_REQUIRED",
+      "This request must come from the LaunchPad website."
+    );
+  }
+
+  let requestOrigin;
+
+  try {
+    requestOrigin = new URL(origin);
+  } catch {
+    return fail(res, 403, "INVALID_ORIGIN", "Invalid request origin.");
+  }
+
+  const expectedOrigin = `${req.protocol}://${req.get("host")}`;
+
+  if (requestOrigin.origin !== expectedOrigin) {
+    return fail(
+      res,
+      403,
+      "ORIGIN_MISMATCH",
+      "Requests from other websites are not allowed."
+    );
+  }
+
+  next();
+}
+
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 120,
@@ -168,7 +202,7 @@ const internAuthLimiter = rateLimit({
   }
 });
 
-app.post("/api/intern/register", internAuthLimiter, async (req, res, next) => {
+app.post("/api/intern/register", requireSameOrigin, internAuthLimiter, async (req, res, next) => {
   try {
     const { name, email, password } = req.body || {};
 
@@ -258,7 +292,7 @@ app.post("/api/intern/register", internAuthLimiter, async (req, res, next) => {
 });
 
 
-app.post("/api/intern/login", internAuthLimiter, async (req, res, next) => {
+app.post("/api/intern/login", requireSameOrigin, internAuthLimiter, async (req, res, next) => {
   try {
     const { email, password } = req.body || {};
 
@@ -310,7 +344,7 @@ app.post("/api/intern/login", internAuthLimiter, async (req, res, next) => {
   }
 });
 
-app.post("/api/intern/logout", (req, res) => {
+app.post("/api/intern/logout", requireSameOrigin, (req, res) => {
   const token = readSessionToken(req);
 
   if (token) {
@@ -390,7 +424,7 @@ app.get("/api/internships/:id", (req, res) => {
   res.json({ data: out(row) });
 });
 
-app.post("/api/applications", applicationLimiter, (req, res) => {
+app.post("/api/applications", requireSameOrigin, applicationLimiter, (req, res) => {
   const parsed = applicationSchema.safeParse(req.body);
   if (!parsed.success) return validationFail(res, parsed.error);
   const { name, email, internshipId, resumeUrl } = parsed.data;
