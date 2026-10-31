@@ -244,6 +244,54 @@
       main { padding-top: 2rem; }
       .profile { grid-template-columns: 1fr; }
     }
+    
+    .my-applications {
+      margin: 2rem 0;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--line);
+    }
+    
+    #applicationsList {
+      display: grid;
+      gap: 1rem;
+      margin: 1.25rem 0;
+    }
+    
+    .application-card {
+      padding: 1.25rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper);
+    }
+    
+    .application-card h3 {
+      margin: 0 0 .5rem;
+      font-size: 1.1rem;
+      letter-spacing: -.025em;
+    }
+    
+    .application-card p {
+      margin: .35rem 0;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    
+    .application-id {
+      font-size: .78rem;
+      color: var(--green);
+      font-weight: 750;
+      overflow-wrap: anywhere;
+    }
+    
+    .empty-applications {
+      padding: 2rem 1rem;
+      border: 1px dashed #cbd5cd;
+      border-radius: 12px;
+      text-align: center;
+      background: var(--soft);
+      color: var(--muted);
+    }
+
   </style>
 </head>
 <body>
@@ -336,10 +384,14 @@
           <strong id="profileEmail"></strong>
         </div>
       </div>
-
-      <p class="muted">
-        Your personal application tracking section is coming next.
-      </p>
+      
+      <section class="my-applications" aria-labelledby="applicationsTitle">
+        <h2 id="applicationsTitle">My Applications</h2>
+        <p class="muted">Track the internships you've applied for using your account.</p>
+        <p id="applicationsMessage" class="status" role="status" aria-live="polite"></p>
+        <div id="applicationsList"></div>
+        <a class="home-link" href="/">Browse More Internships</a>
+      </section>
 
       <button class="secondary" id="logoutButton" type="button">
         Log Out
@@ -405,6 +457,59 @@
 
       return payload.data;
     }
+    
+    async function loadMyApplications() {
+      const list = document.getElementById("applicationsList");
+      const message = document.getElementById("applicationsMessage");
+    
+      list.replaceChildren();
+      message.textContent = "Loading your applications...";
+      message.className = "status";
+    
+      try {
+        const applications = await apiRequest("/api/intern/applications");
+    
+        message.textContent = "";
+    
+        if (!applications.length) {
+          const empty = document.createElement("div");
+          empty.className = "empty-applications";
+          empty.textContent =
+            "You haven't applied for any internships using this account yet.";
+          list.appendChild(empty);
+          return;
+        }
+    
+        for (const application of applications) {
+          const card = document.createElement("article");
+          card.className = "application-card";
+    
+          const title = document.createElement("h3");
+          title.textContent =
+            application.internshipTitle || "Internship no longer available";
+    
+          const id = document.createElement("div");
+          id.className = "application-id";
+          id.textContent = "Application ID: " + application.id;
+    
+          const date = document.createElement("p");
+          const parsedDate = new Date(application.appliedAt);
+          date.textContent = "Applied: " +
+            (Number.isNaN(parsedDate.getTime())
+              ? application.appliedAt
+              : parsedDate.toLocaleDateString());
+    
+          const email = document.createElement("p");
+          email.textContent = "Email: " + application.email;
+    
+          card.append(title, id, date, email);
+          list.appendChild(card);
+        }
+      } catch (error) {
+        message.textContent = error.message;
+        message.className = "status error";
+      }
+    }
 
     function showDashboard(intern) {
       authPanel.hidden = true;
@@ -418,6 +523,7 @@
 
       loginForm.reset();
       registerForm.reset();
+      loadMyApplications();
     }
 
     function showAuth() {
