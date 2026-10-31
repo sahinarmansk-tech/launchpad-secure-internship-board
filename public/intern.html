@@ -1,0 +1,517 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Intern Portal — LaunchPad</title>
+  <style>
+    :root {
+      --ink: #17221e;
+      --muted: #63716b;
+      --paper: #f7f8f4;
+      --line: #dfe5df;
+      --green: #1d5c46;
+      --green-dark: #174936;
+      --lime: #d8f36a;
+      --soft: #edf3e8;
+      --danger: #9e3030;
+      font-family: Inter, ui-sans-serif, system-ui,
+        -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+
+    button, input { font: inherit; }
+
+    :focus-visible {
+      outline: 3px solid #8aa92c;
+      outline-offset: 3px;
+    }
+
+    .wrap {
+      width: min(100% - 32px, 980px);
+      margin-inline: auto;
+    }
+
+    .topbar {
+      background: white;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav {
+      min-height: 76px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: .65rem;
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 1.25rem;
+      font-weight: 850;
+      letter-spacing: -.04em;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 11px;
+      background: var(--green);
+      color: var(--lime);
+    }
+
+    .home-link {
+      padding: .7rem 1rem;
+      border-radius: 10px;
+      background: var(--soft);
+      color: var(--green);
+      text-decoration: none;
+      font-size: .85rem;
+      font-weight: 750;
+    }
+
+    .home-link:hover { background: #dfeadb; }
+
+    main { padding: 3rem 0 5rem; }
+
+    .eyebrow {
+      display: inline-block;
+      background: var(--soft);
+      color: var(--green);
+      border-radius: 99px;
+      padding: .4rem .8rem;
+      font-size: .78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    h1 {
+      margin: 1rem 0 .5rem;
+      font-size: clamp(2.3rem, 5vw, 3.8rem);
+      line-height: 1.1;
+      letter-spacing: -.055em;
+    }
+
+    h1 span { color: var(--green); }
+
+    .intro {
+      margin: 0 0 2rem;
+      color: var(--muted);
+    }
+
+    .panel {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: clamp(1.25rem, 4vw, 2rem);
+      box-shadow: 0 10px 30px rgba(24,48,36,.04);
+      margin-bottom: 1.25rem;
+    }
+
+    h2 {
+      margin: 0 0 .5rem;
+      letter-spacing: -.035em;
+    }
+
+    .muted { color: var(--muted); }
+
+    .tabs {
+      display: flex;
+      gap: .5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .tab {
+      flex: 1;
+      background: var(--soft);
+      color: var(--green);
+    }
+
+    .tab.active {
+      background: var(--green);
+      color: white;
+    }
+
+    .fields {
+      display: grid;
+      gap: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: .85rem;
+      font-weight: 750;
+      margin-bottom: .4rem;
+    }
+
+    input {
+      width: 100%;
+      min-height: 48px;
+      padding: .75rem .9rem;
+      border: 1px solid #cbd5cd;
+      border-radius: 10px;
+      background: white;
+    }
+
+    button {
+      min-height: 48px;
+      padding: .75rem 1.2rem;
+      border: 0;
+      border-radius: 10px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    .primary {
+      background: var(--green);
+      color: white;
+    }
+
+    .primary:hover:not(:disabled) {
+      background: var(--green-dark);
+    }
+
+    .secondary {
+      background: white;
+      border: 1px solid var(--line);
+      color: var(--ink);
+    }
+
+    .status {
+      min-height: 1.5rem;
+      margin-top: 1rem;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .status.error { color: var(--danger); }
+    .status.success { color: var(--green); }
+
+    .profile {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .profile-item {
+      background: var(--soft);
+      border-radius: 12px;
+      padding: 1rem;
+      overflow-wrap: anywhere;
+    }
+
+    .profile-item small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: .35rem;
+    }
+
+    [hidden] { display: none !important; }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 1.25rem 0;
+      color: var(--muted);
+      font-size: .82rem;
+    }
+
+    @media (max-width: 620px) {
+      .nav { min-height: 64px; }
+      main { padding-top: 2rem; }
+      .profile { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">↗</span>
+        <span>launchpad<span style="color:#68806f">.</span></span>
+      </a>
+      <a class="home-link" href="/">← Back to Home</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <span class="eyebrow">Intern workspace</span>
+    <h1>Your next chapter <span>starts here.</span></h1>
+    <p class="intro">
+      Create your account, sign in, and manage your internship journey.
+    </p>
+
+    <section id="authPanel" class="panel">
+      <div class="tabs">
+        <button class="tab active" id="loginTab" type="button">
+          Log In
+        </button>
+        <button class="tab" id="registerTab" type="button">
+          Create Account
+        </button>
+      </div>
+
+      <form id="loginForm" class="fields">
+        <h2>Welcome back</h2>
+        <div>
+          <label for="loginEmail">Email address</label>
+          <input id="loginEmail" type="email"
+                 autocomplete="username" required>
+        </div>
+        <div>
+          <label for="loginPassword">Password</label>
+          <input id="loginPassword" type="password"
+                 autocomplete="current-password" required>
+        </div>
+        <button class="primary" type="submit">Log In</button>
+      </form>
+
+      <form id="registerForm" class="fields" hidden>
+        <h2>Create your intern account</h2>
+        <div>
+          <label for="registerName">Full name</label>
+          <input id="registerName" required minlength="2"
+                 maxlength="100" autocomplete="name">
+        </div>
+        <div>
+          <label for="registerEmail">Email address</label>
+          <input id="registerEmail" type="email"
+                 autocomplete="email" required maxlength="254">
+        </div>
+        <div>
+          <label for="registerPassword">Password</label>
+          <input id="registerPassword" type="password"
+                 autocomplete="new-password"
+                 minlength="12" required>
+          <p class="muted">
+            Use at least 12 characters.
+          </p>
+        </div>
+        <button class="primary" type="submit">
+          Create Account
+        </button>
+      </form>
+
+      <p id="authMessage" class="status" role="status"
+         aria-live="polite"></p>
+    </section>
+
+    <section id="dashboardPanel" class="panel" hidden>
+      <span class="eyebrow">My dashboard</span>
+      <h2 id="welcomeTitle">Welcome!</h2>
+      <p class="muted">
+        You're signed in to your LaunchPad intern account.
+      </p>
+
+      <div class="profile">
+        <div class="profile-item">
+          <small>Full name</small>
+          <strong id="profileName"></strong>
+        </div>
+        <div class="profile-item">
+          <small>Email address</small>
+          <strong id="profileEmail"></strong>
+        </div>
+      </div>
+
+      <p class="muted">
+        Your personal application tracking section is coming next.
+      </p>
+
+      <button class="secondary" id="logoutButton" type="button">
+        Log Out
+      </button>
+      <p id="dashboardMessage" class="status"
+         role="status" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      © 2026 LaunchPad Internship Board
+    </div>
+  </footer>
+
+  <script>
+    const authPanel = document.getElementById("authPanel");
+    const dashboardPanel = document.getElementById("dashboardPanel");
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+    const authMessage = document.getElementById("authMessage");
+    const dashboardMessage = document.getElementById("dashboardMessage");
+
+    function showTab(tab) {
+      const isLogin = tab === "login";
+
+      loginForm.hidden = !isLogin;
+      registerForm.hidden = isLogin;
+
+      document.getElementById("loginTab")
+        .classList.toggle("active", isLogin);
+      document.getElementById("registerTab")
+        .classList.toggle("active", !isLogin);
+
+      authMessage.textContent = "";
+      authMessage.className = "status";
+    }
+
+    document.getElementById("loginTab")
+      .addEventListener("click", () => showTab("login"));
+
+    document.getElementById("registerTab")
+      .addEventListener("click", () => showTab("register"));
+
+    async function apiRequest(url, options = {}) {
+      const response = await fetch(url, {
+        ...options,
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          ...(options.headers || {})
+        },
+        cache: "no-store"
+      });
+
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          payload.error?.message || "Request failed. Please try again."
+        );
+      }
+
+      return payload.data;
+    }
+
+    function showDashboard(intern) {
+      authPanel.hidden = true;
+      dashboardPanel.hidden = false;
+
+      document.getElementById("welcomeTitle").textContent =
+        "Welcome, " + intern.name + "!";
+
+      document.getElementById("profileName").textContent = intern.name;
+      document.getElementById("profileEmail").textContent = intern.email;
+
+      loginForm.reset();
+      registerForm.reset();
+    }
+
+    function showAuth() {
+      dashboardPanel.hidden = true;
+      authPanel.hidden = false;
+      dashboardMessage.textContent = "";
+    }
+
+    loginForm.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const button = loginForm.querySelector("button[type=submit]");
+      button.disabled = true;
+      authMessage.textContent = "Signing in...";
+      authMessage.className = "status";
+
+      try {
+        const intern = await apiRequest("/api/intern/login", {
+          method: "POST",
+          body: JSON.stringify({
+            email: document.getElementById("loginEmail").value,
+            password: document.getElementById("loginPassword").value
+          })
+        });
+
+        showDashboard(intern);
+      } catch (error) {
+        authMessage.textContent = error.message;
+        authMessage.className = "status error";
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    registerForm.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const button = registerForm.querySelector("button[type=submit]");
+      button.disabled = true;
+      authMessage.textContent = "Creating your account...";
+      authMessage.className = "status";
+
+      try {
+        await apiRequest("/api/intern/register", {
+          method: "POST",
+          body: JSON.stringify({
+            name: document.getElementById("registerName").value,
+            email: document.getElementById("registerEmail").value,
+            password: document.getElementById("registerPassword").value
+          })
+        });
+
+        registerForm.reset();
+        showTab("login");
+        authMessage.textContent =
+          "Account created! Please log in.";
+        authMessage.className = "status success";
+      } catch (error) {
+        authMessage.textContent = error.message;
+        authMessage.className = "status error";
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    document.getElementById("logoutButton")
+      .addEventListener("click", async () => {
+        dashboardMessage.textContent = "Signing out...";
+
+        try {
+          await apiRequest("/api/intern/logout", {
+            method: "POST"
+          });
+
+          showAuth();
+          showTab("login");
+          authMessage.textContent = "Logged out successfully.";
+          authMessage.className = "status success";
+        } catch (error) {
+          dashboardMessage.textContent = error.message;
+          dashboardMessage.className = "status error";
+        }
+      });
+
+    async function checkSession() {
+      try {
+        const intern = await apiRequest("/api/intern/me");
+        showDashboard(intern);
+      } catch {
+        showAuth();
+      }
+    }
+
+    checkSession();
+  </script>
+</body>
+</html>
