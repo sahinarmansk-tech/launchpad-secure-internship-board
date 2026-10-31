@@ -3,7 +3,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { randomUUID, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import { randomUUID, randomBytes, scrypt, timingSafeEqual, createHash } from "node:crypto";
 import { promisify } from "node:util";
 import { db } from "./db.js";
 import { createSchema, updateSchema, pagination, applicationSchema } from "./validation.js";
@@ -15,6 +15,76 @@ async function hashPassword(password) {
   const derivedKey = await scryptAsync(password, salt, 64);
 
   return `${salt}:${derivedKey.toString("hex")}`;
+}
+
+
+const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+const SESSION_COOKIE = "launchpad_intern_session";
+
+function hashSessionToken(token) {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+async function verifyPassword(password, storedHash) {
+  try {
+    const [salt, hashHex] = storedHash.split(":");
+    if (
+      !salt || !hashHex ||
+      !/^[a-f0-9]{32}$/i.test(salt) ||
+      !/^[a-f0-9]{128}$/i.test(hashHex)
+    ) return false;
+
+    const expected = Buffer.from(hashHex, "hex");
+    const actual = await scryptAsync(password, salt, expected.length);
+
+    return timingSafeEqual(actual, expected);
+  } catch {
+    return false;
+  }
+}
+
+function readSessionToken(req) {
+  const cookies = req.get("cookie") || "";
+  const entry = cookies.split(";").map(value => value.trim())
+    .find(value => value.startsWith(SESSION_COOKIE + "="));
+
+  if (!entry) return null;
+
+  const token = entry.slice(SESSION_COOKIE.length + 1);
+
+  return /^[a-f0-9]{64}$/.test(token) ? token : null;
+}
+
+function sessionCookieOptions() {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: SESSION_DURATION_MS
+  };
+}
+
+function requireIntern(req, res, next) {
+  const token = readSessionToken(req);
+
+  if (!token) {
+    return fail(res, 401, "LOGIN_REQUIRED", "Please sign in.");
+  }
+
+  const session = db.prepare(`
+    SELECT i.id, i.name, i.email
+    FROM intern_sessions AS s
+    JOIN interns AS i ON i.id = s.intern_id
+    WHERE s.token_hash = ? AND s.expires_at > ?
+  `).get(hashSessionToken(token), Date.now());
+
+  if (!session) {
+    return fail(res, 401, "SESSION_EXPIRED", "Please sign in again.");
+  }
+
+  req.intern = session;
+  next();
 }
 
 export const app = express();
@@ -185,6 +255,84 @@ app.post("/api/intern/register", internAuthLimiter, async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+
+
+app.post("/api/intern/login", internAuthLimiter, async (req, res, next) => {
+  try {
+    const { email, password } = req.body || {};
+
+    if (
+      typeof email !== "string" ||
+      typeof password !== "string" ||
+      !email.trim() ||
+      password.length > 1024
+    ) {
+      return fail(res, 400, "VALIDATION_ERROR",
+        "Valid email and password are required.");
+    }
+
+    const intern = db.prepare(`
+      SELECT id, name, email, password_hash
+      FROM interns
+      WHERE email = ?
+    `).get(email.trim().toLowerCase());
+
+    const valid = intern
+      ? await verifyPassword(password, intern.password_hash)
+      : false;
+
+    if (!valid) {
+      return fail(res, 401, "INVALID_CREDENTIALS",
+        "Invalid email or password.");
+    }
+
+    const token = randomBytes(32).toString("hex");
+    const expiresAt = Date.now() + SESSION_DURATION_MS;
+
+    db.prepare(`
+      INSERT INTO intern_sessions (token_hash, intern_id, expires_at)
+      VALUES (?, ?, ?)
+    `).run(hashSessionToken(token), intern.id, expiresAt);
+
+    res.cookie(SESSION_COOKIE, token, sessionCookieOptions());
+    res.set("Cache-Control", "no-store");
+
+    return res.json({
+      data: {
+        id: intern.id,
+        name: intern.name,
+        email: intern.email
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/api/intern/logout", (req, res) => {
+  const token = readSessionToken(req);
+
+  if (token) {
+    db.prepare(`
+      DELETE FROM intern_sessions WHERE token_hash = ?
+    `).run(hashSessionToken(token));
+  }
+
+  res.clearCookie(SESSION_COOKIE, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/"
+  });
+
+  res.set("Cache-Control", "no-store");
+  return res.json({ data: { message: "Logged out successfully." } });
+});
+
+app.get("/api/intern/me", requireIntern, (req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.json({ data: req.intern });
 });
 
 app.get("/api/internships", (req, res) => {
