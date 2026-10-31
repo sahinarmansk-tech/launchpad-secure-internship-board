@@ -28,13 +28,19 @@
     .brand { display: inline-flex; align-items: center; gap: .65rem; text-decoration: none; font-weight: 850; letter-spacing: -.04em; font-size: 1.25rem; }
     .brand-mark { display: grid; place-items: center; width: 36px; height: 36px; background: var(--green); color: var(--lime); border-radius: 11px; font-size: 1.05rem; }
     .nav-note { color: var(--muted); font-size: .9rem; }
-		.nav-actions { display: flex; align-items: center; gap: 1.25rem; }
-		.admin-link { display: inline-flex; align-items: center; justify-content: center; padding: .7rem 1.1rem; background: var(--green); color: white; border-radius: 10px; text-decoration: none; font-size: .85rem; font-weight: 750; white-space: nowrap; transition: background .2s ease, transform .2s ease; }
-		.admin-link:hover { background: var(--green-dark); transform: translateY(-2px); }
-		@media (max-width: 620px) { 
-			.nav-actions { gap: .5rem; }
-		  .admin-link { padding: .65rem .8rem; font-size: .75rem; }
-		}
+	.nav-actions { display: flex; align-items: center; gap: 1.25rem; }
+	.admin-link { display: inline-flex; align-items: center; justify-content: center; padding: .7rem 1.1rem; background: var(--green); color: white; border-radius: 10px; text-decoration: none; font-size: .85rem; font-weight: 750; white-space: nowrap; transition: background .2s ease, transform .2s ease; }
+	.admin-link:hover { background: var(--green-dark); transform: translateY(-2px); }
+	.intern-link { display: inline-flex; align-items: center; justify-content: center; padding: .7rem 1.1rem; background: var(--soft); color: var(--green); border: 1px solid var(--line); border-radius: 10px; text-decoration: none; font-size: .85rem; font-weight: 750; white-space: nowrap; transition: background .2s ease, transform .2s ease; }
+	.intern-link:hover { background: #dfeadb; transform: translateY(-2px); }
+	@media (max-width: 620px) { 
+		.nav-actions { gap: .5rem; }
+	    .admin-link { padding: .65rem .8rem; font-size: .75rem; }
+	}
+	@media (max-width: 620px) {
+  		.nav-actions { flex-wrap: wrap; justify-content: flex-end; }
+		.intern-link { padding: .65rem .8rem; font-size: .75rem; }
+	}
     .hero { padding: clamp(2.5rem, 7vw, 5.25rem) 0 2.5rem; }
     .eyebrow { display: inline-flex; align-items: center; gap: .5rem; color: var(--green); background: var(--soft); border-radius: 99px; padding: .35rem .7rem; font-weight: 750; font-size: .78rem; letter-spacing: .04em; text-transform: uppercase; }
     .eyebrow-dot { width: 7px; height: 7px; background: #78a12a; border-radius: 50%; }
@@ -132,10 +138,11 @@
       <a class="brand" href="#" aria-label="Launchpad home">
         <span class="brand-mark" aria-hidden="true">↗</span><span>launchpad<span style="color:#68806f">.</span></span>
       </a>
-      <div class="nav-actions">
-        <span class="nav-note">A thoughtful start to your next chapter</span>
-        <a class="admin-link" href="/admin.html">Admin Dashboard</a>
-      </div>
+		<div class="nav-actions">
+		  <span class="nav-note">A thoughtful start to your next chapter</span>
+		  <a class="intern-link" href="/intern.html">Intern Portal</a>
+		  <a class="admin-link" href="/admin.html">Admin Dashboard</a>
+		</div>
     </div>
   </header>
 
