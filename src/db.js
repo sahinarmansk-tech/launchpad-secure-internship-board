@@ -72,6 +72,26 @@ CREATE INDEX IF NOT EXISTS idx_applications_intern_id
 ON applications(intern_id);
 `);
 
+
+/*
+ * Secure intern login sessions.
+ * Only a hash of the session token is stored in the database.
+ */
+db.exec(`
+CREATE TABLE IF NOT EXISTS intern_sessions (
+  token_hash TEXT PRIMARY KEY,
+  intern_id TEXT NOT NULL
+    REFERENCES interns(id) ON DELETE CASCADE,
+  expires_at INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+`);
+
+db.exec(`
+CREATE INDEX IF NOT EXISTS idx_intern_sessions_expires_at
+ON intern_sessions(expires_at);
+`);
+
 // Seed sample internships automatically when the database is empty.
 const internshipCount = db
   .prepare("SELECT COUNT(*) AS count FROM internships")
