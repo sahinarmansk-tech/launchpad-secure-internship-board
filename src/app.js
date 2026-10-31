@@ -335,6 +335,37 @@ app.get("/api/intern/me", requireIntern, (req, res) => {
   res.json({ data: req.intern });
 });
 
+
+app.get("/api/intern/applications", requireIntern, (req, res, next) => {
+  try {
+    const applications = db.prepare(`
+      SELECT
+        a.id,
+        a.internship_id AS internshipId,
+        i.title AS internshipTitle,
+        a.name,
+        a.email,
+        a.resume_url AS resumeUrl,
+        a.created_at AS appliedAt
+      FROM applications AS a
+      LEFT JOIN internships AS i
+        ON i.id = a.internship_id
+      WHERE a.intern_id = ?
+      ORDER BY a.created_at DESC, a.rowid DESC
+    `).all(req.intern.id);
+
+    res.set("Cache-Control", "no-store");
+
+    return res.json({
+      data: applications,
+      total: applications.length
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
 app.get("/api/internships", (req, res) => {
   const pg = pagination(req.query);
   if (pg.error) return fail(res, 400, "INVALID_PAGINATION", pg.error);
