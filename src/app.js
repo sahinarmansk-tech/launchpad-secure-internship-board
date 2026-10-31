@@ -397,10 +397,45 @@ app.post("/api/applications", applicationLimiter, (req, res) => {
   const internship = find(internshipId);
   if (!internship) return fail(res, 404, "INTERNSHIP_NOT_FOUND", "Selected internship does not exist");
   if (!internship.applications_open) return fail(res, 409, "APPLICATIONS_CLOSED", "Applications are closed for this internship");
-  const id = "APP-" + randomUUID().slice(0, 12).toUpperCase();
-  // Parameterized SQL keeps applicant data out of query strings and prevents SQL injection.
-  db.prepare("INSERT INTO applications(id, internship_id, name, email, resume_url) VALUES(?,?,?,?,?)")
-    .run(id, internshipId, name, email, resumeUrl || null);
+  
+const id = "APP-" + randomUUID().slice(0, 12).toUpperCase();
+
+// Link the application only to a verified, signed-in intern.
+let internId = null;
+const sessionToken = readSessionToken(req);
+
+if (sessionToken) {
+  const session = db.prepare(`
+    SELECT i.id
+    FROM intern_sessions AS s
+    JOIN interns AS i ON i.id = s.intern_id
+    WHERE s.token_hash = ?
+      AND s.expires_at > ?
+  `).get(hashSessionToken(sessionToken), Date.now());
+
+  if (session) {
+    // Prevent an account from claiming another person's application.
+    if (email.trim().toLowerCase() !==
+        db.prepare("SELECT email FROM interns WHERE id = ?")
+          .get(session.id).email.toLowerCase()) {
+      return fail(
+        res,
+        400,
+        "EMAIL_MISMATCH",
+        "Please use your signed-in account email when applying."
+      );
+    }
+
+    internId = session.id;
+  }
+}
+
+db.prepare(`
+  INSERT INTO applications
+    (id, internship_id, name, email, resume_url, intern_id)
+  VALUES (?, ?, ?, ?, ?, ?)
+`).run(id, internshipId, name, email, resumeUrl || null, internId);
+
   res.status(201).json({ data: { id, internshipId, message: "Application received" } });
 });
 
