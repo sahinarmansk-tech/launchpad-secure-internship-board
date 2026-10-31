@@ -243,5 +243,3 @@ keywordInput.addEventListener("input", applyFilters);
 domainSelect.addEventListener("change", applyFilters);
 resetButton.addEventListener("click", resetFilters);
 loadInternships();
-resetButton.addEventListener("click", resetFilters);
-loadInternships();
