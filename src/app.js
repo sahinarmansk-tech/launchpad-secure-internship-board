@@ -129,7 +129,9 @@ function requireSameOrigin(req, res, next) {
     return fail(res, 403, "INVALID_ORIGIN", "Invalid request origin.");
   }
 
-  const expectedOrigin = `${req.protocol}://${req.get("host")}`;
+  
+  const expectedOrigin = "https://launchpad.de.deplexo.com";
+
 
   if (requestOrigin.origin !== expectedOrigin) {
     return fail(
