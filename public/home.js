@@ -1,9 +1,6 @@
 // API base is same-origin when the Express server serves this page.
 const API_BASE = "";
 const form = document.querySelector("#search-form");
-// API base is same-origin when the Express server serves this page.
-const API_BASE = "";
-const form = document.querySelector("#search-form");
 const keywordInput = document.querySelector("#keyword");
 const domainSelect = document.querySelector("#domain");
 const list = document.querySelector("#internship-list");
