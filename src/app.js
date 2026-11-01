@@ -435,20 +435,20 @@ app.post("/api/applications", requireSameOrigin, applicationLimiter, (req, res) 
   if (!internship) return fail(res, 404, "INTERNSHIP_NOT_FOUND", "Selected internship does not exist");
   if (!internship.applications_open) return fail(res, 409, "APPLICATIONS_CLOSED", "Applications are closed for this internship");
   
-const id = "APP-" + randomUUID().slice(0, 12).toUpperCase();
+  const id = "APP-" + randomUUID().slice(0, 12).toUpperCase();
 
-// Link the application only to a verified, signed-in intern.
-let internId = null;
-const sessionToken = readSessionToken(req);
+  // Link the application only to a verified, signed-in intern.
+  let internId = null;
+  const sessionToken = readSessionToken(req);
 
-if (sessionToken) {
-  const session = db.prepare(`
-    SELECT i.id
-    FROM intern_sessions AS s
-    JOIN interns AS i ON i.id = s.intern_id
-    WHERE s.token_hash = ?
-      AND s.expires_at > ?
-  `).get(hashSessionToken(sessionToken), Date.now());
+  if (sessionToken) {
+    const session = db.prepare(`
+      SELECT i.id
+      FROM intern_sessions AS s
+      JOIN interns AS i ON i.id = s.intern_id
+      WHERE s.token_hash = ?
+        AND s.expires_at > ?
+    `).get(hashSessionToken(sessionToken), Date.now());
 
   if (session) {
     // Prevent an account from claiming another person's application.
