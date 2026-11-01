@@ -551,7 +551,9 @@ app.use((err, _req, res, _next) => {
   if (err instanceof SyntaxError && "body" in err) return fail(res, 400, "INVALID_JSON", "Request body must be valid JSON");
   if (err?.type === "entity.too.large") return fail(res, 413, "PAYLOAD_TOO_LARGE", "Request body must be 20 KB or smaller");
   if (err?.status === 429) return fail(res, 429, "RATE_LIMITED", "Too many requests. Please try again later.");
-  console.error(err);
+  console.error("Unexpected server error", {
+    code: typeof err?.code === "string" ? err.code : "UNKNOWN"
+  });
   return fail(res, 500, "INTERNAL_SERVER_ERROR", "An unexpected error occurred");
 });
 app.use((_req, res) => fail(res, 404, "ROUTE_NOT_FOUND", "Route not found"));
