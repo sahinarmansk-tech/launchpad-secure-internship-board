@@ -434,7 +434,22 @@ app.post("/api/applications", requireSameOrigin, applicationLimiter, (req, res) 
   const internship = find(internshipId);
   if (!internship) return fail(res, 404, "INTERNSHIP_NOT_FOUND", "Selected internship does not exist");
   if (!internship.applications_open) return fail(res, 409, "APPLICATIONS_CLOSED", "Applications are closed for this internship");
-  
+  const existingApplication = db.prepare(`
+    SELECT id
+    FROM applications
+    WHERE internship_id = ?
+      AND LOWER(TRIM(email)) = LOWER(TRIM(?))
+    LIMIT 1
+  `).get(internshipId, email);
+
+  if (existingApplication) {
+    return fail(
+      res,
+      409,
+      "ALREADY_APPLIED",
+      "You have already applied to this internship using this email."
+    );
+  }
   const id = "APP-" + randomUUID().slice(0, 12).toUpperCase();
 
   // Link the application only to a verified, signed-in intern.
