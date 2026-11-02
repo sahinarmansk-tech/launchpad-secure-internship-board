@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -261,6 +260,39 @@
       main { padding-top: 2rem; }
       .access-form button { flex: 1; }
     }
+    .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.stat-card {
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.25rem;
+}
+
+.stat-label {
+  display: block;
+  color: var(--muted);
+  font-size: .85rem;
+  font-weight: 700;
+}
+
+.stat-card strong {
+  display: block;
+  margin-top: .5rem;
+  color: var(--green);
+  font-size: 2rem;
+}
+
+@media (max-width: 620px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
   </style>
 </head>
 <body>
@@ -304,6 +336,29 @@
       <p id="message" class="status" role="status"
          aria-live="polite"></p>
     </section>
+    <section class="panel">
+  <h2>Dashboard Statistics</h2>
+  <p class="muted">
+    Overview of LaunchPad internship activity.
+  </p>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-label">Total Applications</span>
+      <strong id="totalApplications">—</strong>
+    </div>
+
+    <div class="stat-card">
+      <span class="stat-label">Total Internships</span>
+      <strong id="totalInternships">—</strong>
+    </div>
+
+    <div class="stat-card">
+      <span class="stat-label">Open Internships</span>
+      <strong id="openInternships">—</strong>
+    </div>
+  </div>
+</section>
 
     <section class="panel">
       <div class="panel-head">
