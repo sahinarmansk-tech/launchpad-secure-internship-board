@@ -4,7 +4,15 @@ const count = document.getElementById("count");
 const tbody = document.getElementById("applications");
 const emptyMessage = document.getElementById("emptyMessage");
 const loadButton = document.getElementById("loadButton");
+const totalApplications = document.getElementById("totalApplications");
+const totalInternships = document.getElementById("totalInternships");
+const openInternships = document.getElementById("openInternships");
 
+function clearStats() {
+  totalApplications.textContent = "—";
+  totalInternships.textContent = "—";
+  openInternships.textContent = "—";
+}
 document.getElementById("accessForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -12,6 +20,7 @@ document.getElementById("accessForm")
     const key = keyInput.value.trim();
     tbody.replaceChildren();
     count.textContent = "Not loaded";
+    clearStats();
 
     if (!key) {
       message.textContent = "Please enter your admin key.";
@@ -86,7 +95,24 @@ document.getElementById("accessForm")
       emptyMessage.textContent = applications.length
         ? ""
         : "No applications have been submitted yet.";
-      message.textContent = "Applications loaded successfully.";
+      const statsResponse = await fetch("/api/admin/stats", {
+  headers: { Authorization: "Bearer " + key },
+  cache: "no-store"
+});
+
+if (statsResponse.ok) {
+  const statsResult = await statsResponse.json();
+  const stats = statsResult.data;
+
+  totalApplications.textContent = stats.totalApplications;
+  totalInternships.textContent = stats.totalInternships;
+  openInternships.textContent = stats.openInternships;
+
+  message.textContent = "Dashboard loaded successfully.";
+} else {
+  message.textContent =
+    "Applications loaded, but statistics could not be retrieved.";
+}
     } catch {
       message.textContent = "Network error. Please try again.";
       emptyMessage.hidden = false;
@@ -100,6 +126,7 @@ document.getElementById("clearButton")
     keyInput.value = "";
     tbody.replaceChildren();
     count.textContent = "Not loaded";
+    clearStats();
     message.textContent = "Cleared.";
     emptyMessage.hidden = false;
     emptyMessage.textContent =
