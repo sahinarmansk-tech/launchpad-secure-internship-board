@@ -119,3 +119,41 @@ test("frontend is served from the same origin", async () => {
   assert.match(r.headers.get("content-type"), /text\/html/);
   assert.match(await r.text(), /Apply for an internship/);
 });
+test("admin statistics require authentication and return accurate counts", async () => {
+  const unauthorized = await fetch(base + "/api/admin/stats");
+
+  assert.equal(unauthorized.status, 401);
+  assert.equal(
+    (await unauthorized.json()).error.code,
+    "ADMIN_AUTH_REQUIRED"
+  );
+
+  const authorized = await fetch(base + "/api/admin/stats", {
+    headers: {
+      authorization: "Bearer test-admin-key-for-tests"
+    }
+  });
+
+  assert.equal(authorized.status, 200);
+  assert.equal(authorized.headers.get("cache-control"), "no-store");
+
+  const result = await authorized.json();
+
+  const expectedApplications = db.prepare(
+    "SELECT COUNT(*) AS total FROM applications"
+  ).get().total;
+
+  const expectedInternships = db.prepare(
+    "SELECT COUNT(*) AS total FROM internships"
+  ).get().total;
+
+  const expectedOpenInternships = db.prepare(
+    "SELECT COUNT(*) AS total FROM internships WHERE applications_open = 1"
+  ).get().total;
+
+  assert.deepEqual(result.data, {
+    totalApplications: expectedApplications,
+    totalInternships: expectedInternships,
+    openInternships: expectedOpenInternships
+  });
+});
