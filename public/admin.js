@@ -186,7 +186,16 @@ editButton.className = "secondary";
 editButton.textContent = "Edit";
 
 editButton.addEventListener("click", () => {
-  window.alert(`Selected internship: ${internship.id}`);
+  document.getElementById("editInternshipId").value = internship.id;
+  document.getElementById("editTitle").value = internship.title;
+  document.getElementById("editLocation").value = internship.location;
+  document.getElementById("editOpenings").value = internship.openings;
+
+  document.getElementById("editInternshipStatus").textContent = "";
+
+  const panel = document.getElementById("editInternshipPanel");
+  panel.hidden = false;
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
 actionsCell.appendChild(editButton);
@@ -208,3 +217,8 @@ row.appendChild(actionsCell);
 }
 document.getElementById("refreshInternships")
   .addEventListener("click", loadAdminInternships);
+document.getElementById("cancelInternshipEdit")
+  .addEventListener("click", () => {
+    document.getElementById("editInternshipPanel").hidden = true;
+    document.getElementById("editInternshipForm").reset();
+  });
