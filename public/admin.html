@@ -426,6 +426,60 @@
     </p>
   </div>
 </section>
+    <section class="panel" id="editInternshipPanel" hidden>
+  <h2>Edit Internship</h2>
+  <p class="muted">
+    Update the selected internship's details.
+  </p>
+
+  <form id="editInternshipForm">
+    <input type="hidden" id="editInternshipId">
+
+    <div class="field">
+      <label for="editTitle">Internship Title</label>
+      <input
+        id="editTitle"
+        type="text"
+        required
+        minlength="3"
+        maxlength="150">
+    </div>
+
+    <div class="field">
+      <label for="editLocation">Location</label>
+      <input
+        id="editLocation"
+        type="text"
+        required
+        maxlength="150">
+    </div>
+
+    <div class="field">
+      <label for="editOpenings">Available Openings</label>
+      <input
+        id="editOpenings"
+        type="number"
+        min="0"
+        step="1"
+        required>
+    </div>
+
+    <p id="editInternshipStatus"
+       class="status"
+       role="status"
+       aria-live="polite"></p>
+
+    <button class="primary" type="submit">
+      Save Changes
+    </button>
+
+    <button class="secondary"
+            type="button"
+            id="cancelInternshipEdit">
+      Cancel
+    </button>
+  </form>
+</section>
   </main>
 
   <footer>
