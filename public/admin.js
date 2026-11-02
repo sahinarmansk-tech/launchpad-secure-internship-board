@@ -178,6 +178,19 @@ async function loadAdminInternships() {
         cell.textContent = value ?? "—";
         row.appendChild(cell);
       }
+      const actionsCell = document.createElement("td");
+const editButton = document.createElement("button");
+
+editButton.type = "button";
+editButton.className = "secondary";
+editButton.textContent = "Edit";
+
+editButton.addEventListener("click", () => {
+  window.alert(`Selected internship: ${internship.id}`);
+});
+
+actionsCell.appendChild(editButton);
+row.appendChild(actionsCell);
 
       rows.appendChild(row);
     }
