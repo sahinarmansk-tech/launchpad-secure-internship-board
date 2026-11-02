@@ -4,6 +4,7 @@ const count = document.getElementById("count");
 const tbody = document.getElementById("applications");
 const emptyMessage = document.getElementById("emptyMessage");
 const loadButton = document.getElementById("loadButton");
+loadAdminInternships();
 const totalApplications = document.getElementById("totalApplications");
 const totalInternships = document.getElementById("totalInternships");
 const openInternships = document.getElementById("openInternships");
@@ -132,3 +133,63 @@ document.getElementById("clearButton")
     emptyMessage.textContent =
       "Enter your admin key above to load applications.";
   });
+// Load internships into the admin dashboard (read-only).
+async function loadAdminInternships() {
+  const rows = document.getElementById("internshipRows");
+  const count = document.getElementById("internshipCount");
+  const message = document.getElementById("internshipMessage");
+
+  rows.replaceChildren();
+  count.textContent = "Loading...";
+  message.hidden = false;
+  message.textContent = "Loading internships...";
+
+  try {
+    const allInternships = [];
+    let page = 1;
+    let totalPages = 1;
+
+    do {
+      const response = await fetch(
+        `/api/internships?page=${page}&limit=50`,
+        { cache: "no-store" }
+      );
+
+      if (!response.ok) throw new Error("Unable to load internships");
+
+      const result = await response.json();
+      allInternships.push(...result.data);
+      totalPages = result.pagination.totalPages;
+      page++;
+    } while (page <= totalPages);
+
+    for (const internship of allInternships) {
+      const row = document.createElement("tr");
+
+      for (const value of [
+        internship.title,
+        internship.domain,
+        internship.location,
+        internship.mode,
+        internship.openings,
+        internship.applications_open ? "Open" : "Closed"
+      ]) {
+        const cell = document.createElement("td");
+        cell.textContent = value ?? "—";
+        row.appendChild(cell);
+      }
+
+      rows.appendChild(row);
+    }
+
+    count.textContent = `${allInternships.length} internships`;
+    message.hidden = allInternships.length > 0;
+    message.textContent = allInternships.length
+      ? ""
+      : "No internships found.";
+  } catch {
+    count.textContent = "Not loaded";
+    message.hidden = false;
+    message.textContent = "Unable to load internships. Please try again.";
+  }
+}
