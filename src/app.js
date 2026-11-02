@@ -490,7 +490,30 @@ db.prepare(`
 
   res.status(201).json({ data: { id, internshipId, message: "Application received" } });
 });
+// Admin-only dashboard statistics.
+app.get("/api/admin/stats", requireAdmin, (req, res) => {
+  const totalApplications = db.prepare(
+    "SELECT COUNT(*) AS total FROM applications"
+  ).get().total;
 
+  const totalInternships = db.prepare(
+    "SELECT COUNT(*) AS total FROM internships"
+  ).get().total;
+
+  const openInternships = db.prepare(
+    "SELECT COUNT(*) AS total FROM internships WHERE applications_open = 1"
+  ).get().total;
+
+  res.set("Cache-Control", "no-store");
+
+  res.json({
+    data: {
+      totalApplications,
+      totalInternships,
+      openInternships
+    }
+  });
+});
 // Only administrators can view submitted applications.
 app.get("/api/admin/applications", requireAdmin, (req, res) => {
   const applications = db.prepare(`
