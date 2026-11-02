@@ -11,9 +11,6 @@ const { app } = await import("../src/app.js");
 const { db } = await import("../src/db.js");
 let server, base;
 before(async () => {
-  const seed = JSON.parse(fs.readFileSync(new URL("../data/seed.json", import.meta.url), "utf8"));
-  const ins = db.prepare("INSERT INTO internships(id,title,domain,mode,location,skills,openings,duration_weeks,applications_open) VALUES(?,?,?,?,?,?,?,?,?)");
-  for (const x of seed.internships) ins.run(x.id, x.title, x.domain, x.mode, x.location, JSON.stringify(x.skills), x.openings, x.duration_weeks ?? null, x.applications_open ? 1 : 0);
   server = app.listen(0);
   await new Promise(r => server.once("listening", r));
   base = `http://127.0.0.1:${server.address().port}`;
