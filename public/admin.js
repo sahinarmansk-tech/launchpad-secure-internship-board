@@ -222,3 +222,58 @@ document.getElementById("cancelInternshipEdit")
     document.getElementById("editInternshipPanel").hidden = true;
     document.getElementById("editInternshipForm").reset();
   });
+document.getElementById("editInternshipForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const status = document.getElementById("editInternshipStatus");
+    const form = event.currentTarget;
+    const saveButton = form.querySelector('button[type="submit"]');
+
+    const key = keyInput.value.trim();
+    if (!key) {
+      status.textContent = "Enter your admin key above before saving.";
+      return;
+    }
+
+    const id = document.getElementById("editInternshipId").value;
+    const title = document.getElementById("editTitle").value.trim();
+    const location = document.getElementById("editLocation").value.trim();
+    const openings = Number(document.getElementById("editOpenings").value);
+
+    if (!Number.isSafeInteger(openings) || openings < 0) {
+      status.textContent = "Openings must be a non-negative whole number.";
+      return;
+    }
+
+    saveButton.disabled = true;
+    status.textContent = "Saving changes...";
+
+    try {
+      const response = await fetch(
+        `/api/internships/${encodeURIComponent(id)}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${key}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ title, location, openings })
+        }
+      );
+
+      if (!response.ok) {
+        status.textContent = response.status === 401
+          ? "Invalid admin key."
+          : "Unable to save changes. Please check your inputs.";
+        return;
+      }
+
+      status.textContent = "Changes saved successfully.";
+      await loadAdminInternships();
+    } catch {
+      status.textContent = "Network error. Please try again.";
+    } finally {
+      saveButton.disabled = false;
+    }
+  });
