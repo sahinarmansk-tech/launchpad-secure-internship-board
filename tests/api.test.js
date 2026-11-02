@@ -50,7 +50,10 @@ test("create/read/update/delete lifecycle", async () => {
 
 test("catalogue write operations require admin authentication", async () => {
   const r = await fetch(base + "/api/internships", {
-    method: "POST", headers: { "content-type": "application/json" },
+    method: "POST", headers: {
+  "content-type": "application/json",
+  "origin": "https://launchpad.de.deplexo.com"
+},
     body: JSON.stringify({ title: "QA Intern", domain: "Testing", mode: "Remote", location: "India", skills: [], openings: 1 })
   });
   assert.equal(r.status, 401);
@@ -66,7 +69,10 @@ test("invalid input and pagination are rejected", async () => {
 
 test("application form accepts valid data and rejects invalid data", async () => {
   let r = await fetch(base + "/api/applications", {
-    method: "POST", headers: { "content-type": "application/json" },
+    method: "POST", headers: {
+  "content-type": "application/json",
+  "origin": "https://launchpad.de.deplexo.com"
+},
     body: JSON.stringify({ name: "Test Applicant", email: "applicant@example.com", internshipId: "INT-101", resumeUrl: "https://example.com/resume" })
   });
   assert.equal(r.status, 201);
@@ -79,7 +85,37 @@ test("application form accepts valid data and rejects invalid data", async () =>
   assert.equal(r.status, 400);
   assert.equal((await r.json()).error.code, "VALIDATION_ERROR");
 });
+test("duplicate applications are rejected", async () => {
+  const application = {
+    name: "Duplicate Test",
+    email: "duplicate@example.com",
+    internshipId: "INT-101"
+  };
 
+  const submit = () => fetch(base + "/api/applications", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "origin": "https://launchpad.de.deplexo.com"
+    },
+    body: JSON.stringify(application)
+  });
+
+  const first = await submit();
+  assert.equal(first.status, 201);
+
+  const second = await submit();
+  assert.equal(second.status, 409);
+  assert.equal((await second.json()).error.code, "ALREADY_APPLIED");
+
+  const count = db.prepare(`
+    SELECT COUNT(*) AS total
+    FROM applications
+    WHERE internship_id = ? AND email = ?
+  `).get(application.internshipId, application.email);
+
+  assert.equal(count.total, 1);
+});
 test("frontend is served from the same origin", async () => {
   const r = await fetch(base + "/");
   assert.equal(r.status, 200);
