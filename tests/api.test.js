@@ -76,7 +76,7 @@ test("application form accepts valid data and rejects invalid data", async () =>
   const result = await r.json();
   assert.match(result.data.id, /^APP-/);
   r = await fetch(base + "/api/applications", {
-    method: "POST", headers: { "content-type": "application/json" },
+    method: "POST", headers: { "content-type": "application/json", "origin": "https://launchpad.de.deplexo.com" },
     body: JSON.stringify({ name: "x", email: "not-an-email", internshipId: "INT-101" })
   });
   assert.equal(r.status, 400);
