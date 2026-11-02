@@ -193,3 +193,5 @@ async function loadAdminInternships() {
     message.textContent = "Unable to load internships. Please try again.";
   }
 }
+document.getElementById("refreshInternships")
+  .addEventListener("click", loadAdminInternships);
