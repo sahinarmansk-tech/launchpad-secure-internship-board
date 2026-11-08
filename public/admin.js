@@ -89,64 +89,6 @@ document.getElementById("accessForm")
 
         row.appendChild(resumeCell);
         const statusCell = document.createElement("td");
-const statusSelect = document.createElement("select");
-
-const statuses = [
-  "Pending",
-  "Under Review",
-  "Shortlisted",
-  "Accepted",
-  "Rejected"
-];
-
-for (const status of statuses) {
-  const option = document.createElement("option");
-  option.value = status;
-  option.textContent = status;
-  statusSelect.appendChild(option);
-}
-
-statusSelect.value = item.status || "Pending";
-
-const saveStatusButton = document.createElement("button");
-saveStatusButton.type = "button";
-saveStatusButton.textContent = "Save";
-saveStatusButton.className = "secondary";
-        saveStatusButton.addEventListener("click", async () => {
-  saveStatusButton.disabled = true;
-  saveStatusButton.textContent = "Saving...";
-
-  try {
-    const response = await fetch(
-      `/api/admin/applications/${encodeURIComponent(item.id)}/status`,
-      {
-        method: "PATCH",
-        headers: {
-          Authorization: "Bearer " + key,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          status: statusSelect.value
-        })
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Unable to update status");
-    }
-
-    saveStatusButton.textContent = "Saved";
-  } catch {
-    saveStatusButton.textContent = "Failed";
-  } finally {
-    saveStatusButton.disabled = false;
-  }
-});
-
-statusCell.appendChild(statusSelect);
-statusCell.appendChild(saveStatusButton);
-row.appendChild(statusCell);
-        const statusCell = document.createElement("td");
 
 const statusSelect = document.createElement("select");
 
