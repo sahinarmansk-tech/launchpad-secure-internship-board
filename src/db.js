@@ -59,6 +59,24 @@ const hasInternId = applicationColumns.some(
   column => column.name === "intern_id"
 );
 
+const hasStatus = applicationColumns.some(
+  column => column.name === "status"
+);
+
+if (!hasStatus) {
+  db.exec(`
+    ALTER TABLE applications
+    ADD COLUMN status TEXT NOT NULL DEFAULT 'Pending'
+    CHECK(status IN (
+      'Pending',
+      'Under Review',
+      'Shortlisted',
+      'Accepted',
+      'Rejected'
+    ));
+  `);
+}
+
 if (!hasInternId) {
   db.exec(`
     ALTER TABLE applications
