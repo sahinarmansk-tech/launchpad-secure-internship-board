@@ -501,6 +501,9 @@
     
           const email = document.createElement("p");
           email.textContent = "Email: " + application.email;
+
+          const status = document.createElement("p");
+          status.textContent = "Status: " + (application.status || "Pending");
     
           card.append(title, id, date, email);
           list.appendChild(card);
