@@ -269,8 +269,8 @@ document.getElementById("editInternshipForm")
         return;
       }
 
-      status.textContent = "Changes saved successfully.";
       await loadAdminInternships();
+      status.textContent = "Changes saved successfully.";
     } catch {
       status.textContent = "Network error. Please try again.";
     } finally {
