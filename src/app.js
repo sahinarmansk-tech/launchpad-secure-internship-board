@@ -383,6 +383,7 @@ app.get("/api/intern/applications", requireIntern, (req, res, next) => {
         a.name,
         a.email,
         a.resume_url AS resumeUrl,
+        a.status,
         a.created_at AS appliedAt
       FROM applications AS a
       LEFT JOIN internships AS i
