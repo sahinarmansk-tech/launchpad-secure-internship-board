@@ -536,6 +536,42 @@ app.get("/api/admin/applications", requireAdmin, (req, res) => {
   res.set("Cache-Control", "no-store");
   res.json({ data: applications });
 });
+
+app.patch("/api/admin/applications/:id/status", requireAdmin, (req, res) => {
+  const allowedStatuses = [
+    "Pending",
+    "Under Review",
+    "Shortlisted",
+    "Accepted",
+    "Rejected"
+  ];
+
+  const { status } = req.body || {};
+
+  if (!allowedStatuses.includes(status)) {
+    return fail(res, 400, "INVALID_STATUS", "Invalid application status");
+  }
+
+  const result = db.prepare(`
+    UPDATE applications
+    SET status = ?
+    WHERE id = ?
+  `).run(status, req.params.id);
+
+  if (result.changes === 0) {
+    return fail(res, 404, "NOT_FOUND", "Application not found");
+  }
+
+  res.set("Cache-Control", "no-store");
+
+  return res.json({
+    data: {
+      id: req.params.id,
+      status
+    }
+  });
+});
+
 app.post("/api/internships", requireAdmin, (req, res) => {
   const parsed = createSchema.safeParse(req.body);
   if (!parsed.success) return validationFail(res, parsed.error);
