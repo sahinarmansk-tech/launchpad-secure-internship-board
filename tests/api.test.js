@@ -157,3 +157,66 @@ test("admin statistics require authentication and return accurate counts", async
     openInternships: expectedOpenInternships
   });
 });
+
+test("admin application status updates require authentication and validate status", async () => {
+  const applicationId = "APP-STATUS-TEST";
+
+  db.prepare(`
+    INSERT INTO applications (id, internship_id, name, email)
+    VALUES (?, ?, ?, ?)
+  `).run(
+    applicationId,
+    "INT-101",
+    "Status Test",
+    "status-test@example.com"
+  );
+
+  const unauthorized = await fetch(
+    `${base}/api/admin/applications/${applicationId}/status`,
+    {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ status: "Accepted" })
+    }
+  );
+
+  assert.equal(unauthorized.status, 401);
+
+  const invalid = await fetch(
+    `${base}/api/admin/applications/${applicationId}/status`,
+    {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        authorization: "Bearer test-admin-key-for-tests"
+      },
+      body: JSON.stringify({ status: "Maybe" })
+    }
+  );
+
+  assert.equal(invalid.status, 400);
+
+  const update = await fetch(
+    `${base}/api/admin/applications/${applicationId}/status`,
+    {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        authorization: "Bearer test-admin-key-for-tests"
+      },
+      body: JSON.stringify({ status: "Shortlisted" })
+    }
+  );
+
+  assert.equal(update.status, 200);
+  assert.equal(update.headers.get("cache-control"), "no-store");
+
+  const result = await update.json();
+  assert.equal(result.data.status, "Shortlisted");
+
+  const saved = db.prepare(
+    "SELECT status FROM applications WHERE id = ?"
+  ).get(applicationId);
+
+  assert.equal(saved.status, "Shortlisted");
+});
