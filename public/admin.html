@@ -389,6 +389,99 @@
         </p>
       </div>
     </section>
+    <section class="panel">
+  <div class="panel-head">
+    <div>
+      <h2>Manage Internships</h2>
+      <p class="muted">
+        View existing internship opportunities.
+      </p>
+    </div>
+    <span id="internshipCount" class="count-pill">Not loaded</span>
+    <button
+  id="refreshInternships"
+  class="secondary"
+  type="button">
+  Refresh Internships
+</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Domain</th>
+          <th>Location</th>
+          <th>Mode</th>
+          <th>Openings</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="internshipRows"></tbody>
+    </table>
+    <p id="internshipMessage" class="empty-message">
+      Internships will appear here after loading.
+    </p>
+  </div>
+</section>
+    <section class="panel" id="editInternshipPanel" hidden>
+  <h2>Edit Internship</h2>
+  <p class="muted">
+    Update the selected internship's details.
+  </p>
+
+  <form id="editInternshipForm">
+    <input type="hidden" id="editInternshipId">
+
+    <div class="field">
+      <label for="editTitle">Internship Title</label>
+      <input
+        id="editTitle"
+        type="text"
+        required
+        minlength="2"
+        maxlength="120">
+    </div>
+
+    <div class="field">
+      <label for="editLocation">Location</label>
+      <input
+        id="editLocation"
+        type="text"
+        required
+        minlength="2"
+        maxlength="100">
+    </div>
+
+    <div class="field">
+      <label for="editOpenings">Available Openings</label>
+      <input
+        id="editOpenings"
+        type="number"
+        min="0"
+        max="100000"
+        step="1"
+        required>
+    </div>
+
+    <p id="editInternshipStatus"
+       class="status"
+       role="status"
+       aria-live="polite"></p>
+
+    <button class="primary" type="submit">
+      Save Changes
+    </button>
+
+    <button class="secondary"
+            type="button"
+            id="cancelInternshipEdit">
+      Cancel
+    </button>
+  </form>
+</section>
   </main>
 
   <footer>
