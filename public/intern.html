@@ -505,7 +505,7 @@
           const status = document.createElement("p");
           status.textContent = "Status: " + (application.status || "Pending");
     
-          card.append(title, id, date, email);
+          card.append(title, id, date, email, status);
           list.appendChild(card);
         }
       } catch (error) {
