@@ -524,7 +524,8 @@ app.get("/api/admin/applications", requireAdmin, (req, res) => {
       a.email,
       a.internship_id,
       i.title AS internship_title,
-      a.resume_url
+      a.resume_url,
+      a.status
     FROM applications AS a
     LEFT JOIN internships AS i
       ON a.internship_id = i.id
