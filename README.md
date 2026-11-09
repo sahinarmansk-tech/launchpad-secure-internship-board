@@ -208,6 +208,16 @@ Refer to [SECURITY-CHECKLIST.md](SECURITY-CHECKLIST.md) for the project's securi
 
 ## Project Objective
 
+## Screenshots and Testing Evidence
+
+Screenshots demonstrating the application's functionality and responsive design are available in the [screenshots folder](./screenshots/).
+
+The folder includes:
+- Main internship portal
+- Admin dashboard
+- Applicant dashboard
+- Mobile responsiveness
+
 The objective of LaunchPad is to provide a secure and accessible platform that simplifies internship discovery, application management, and communication between applicants and administrators.
 
 ---
